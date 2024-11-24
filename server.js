@@ -13,7 +13,7 @@ const cors = require('cors')
 //middleware
 const app = express();
 app.use(cors({//อยู่ก่อนrouter
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5173,localhost:5173",
     credentials: true,
 }))
 app.use(express.json());
@@ -26,7 +26,7 @@ app.use(router);
 //Keep the picture
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {//Where pic got kept
-        cb(null, 'public/uploads/');
+        cb(null, '../Client/public/uploads');
     },
     filename: (req, file, cb) => {//Upload picture this func will change its name into date+.jpg for example
         cb(null, `${Date.now()}-${file.originalname}`);
@@ -375,7 +375,7 @@ router.post('/create', upload.single('image'), (req, res) => {
             console.error(err);
             return res.status(500).send('Server error');
         }
-        res.redirect('/');
+        res.send({ success_msg: "Create Product Successfully" , redirect: '/' });
     });
 });
 
