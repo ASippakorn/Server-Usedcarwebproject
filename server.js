@@ -1,35 +1,39 @@
 const express = require('express')
-const path =require('path');
+const path = require('path');
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
 const router = express.Router();
-const bodyParser = require('body-parser'); 
-const axios =require('axios');
+const bodyParser = require('body-parser');
+const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const multer = require('multer')
 const cors = require('cors')
 
-
-const app=express();
-app.use(express.json()); 
-app.use(router);
-app.use(cors({
+//middleware
+const app = express();
+app.use(cors({//อยู่ก่อนrouter
     origin: "http://localhost:5173",
     credentials: true,
 }))
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: false }));
+app.use(router);
+
+
 
 //Keep the picture
 const storage = multer.diskStorage({
-    destination: (req,file,cb)=>{//Where pic got kept
+    destination: (req, file, cb) => {//Where pic got kept
         cb(null, 'public/uploads/');
     },
-    filename:(req,file,cb)=>{//Upload picture this func will change its name into date+.jpg for example
+    filename: (req, file, cb) => {//Upload picture this func will change its name into date+.jpg for example
         cb(null, `${Date.now()}-${file.originalname}`);
     }
 })
-const upload = multer({ 
-    storage, 
+const upload = multer({
+    storage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB file size limit
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
@@ -44,17 +48,14 @@ const upload = multer({
 dotenv.config();
 
 
-//middleware
-router.use(express.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 //Static file
-app.use(express.static(path.join(__dirname,'public')))
+app.use(express.static(path.join(__dirname, 'public')))
 // Session configuration
 router.use(session({
     secret: process.env.SESSION_SECRET || 'nodesecret',
     resave: false,
     saveUninitialized: true,
-    cookie: { 
+    cookie: {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
@@ -64,23 +65,23 @@ router.use(session({
 // Global error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).render('error', { 
-        message: 'Something went wrong', 
-        error: process.env.NODE_ENV === 'production' ? {} : err 
+    res.status(500).render('error', {
+        message: 'Something went wrong',
+        error: process.env.NODE_ENV === 'production' ? {} : err
     });
 });
 
 //Middleware to check if the user is login
-function isAuthencicated(req,res,next){
-    if(req.session.user){
+function isAuthencicated(req, res, next) {
+    if (req.session.user) {
         return next();
-    }else{
+    } else {
         res.redirect('/login')
     }
 }
 
-function ifLoggedin(req,res,next){
-    if(req.session.user){
+function ifLoggedin(req, res, next) {
+    if (req.session.user) {
         return res.redirect("/")
     }
     next();
@@ -101,9 +102,9 @@ const authPage = (permission) => {
 
 var dbcon = mysql.createConnection({
     host: process.env.DB_host,
-    user:process.env.DB_user,
-    password:process.env.DB_pass,
-    database:process.env.DB_name
+    user: process.env.DB_user,
+    password: process.env.DB_pass,
+    database: process.env.DB_name
 })
 
 //Connect Databases
@@ -116,17 +117,33 @@ dbcon.connect(err => {
 });
 
 // Routes
+
 router.get("/", (req, res) => {
     const sql = "SELECT * FROM User";
+    console.log(req.session.user);
     dbcon.query(sql, (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Server error');
         }
-        res.json(results);
+        res.send({
+            users: results,
+            currentUser: req.session.user
+        });
     });
 });
 
+router.get('/auth', (req, res) => {
+    if (req.session.user) {
+      res.status(200).send({ isAuth: true, user: req.session.user });
+    } else {
+      res.send({ isAuth: false });
+     
+    }
+    console.log(req.session.user)
+  });
+  
+  
 router.get("/team", (req, res) => {
 
     const sql = "SELECT * FROM User";
@@ -137,31 +154,31 @@ router.get("/team", (req, res) => {
             return res.status(500).json({ error: 'Server error' });
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             users: results,
-            currentUser: req.session.user 
+            currentUser: req.session.user
         });
     });
 });
 
 
 router.get("/login", ifLoggedin, (req, res) => {
-    const sql = "SELECT * FROM Car";
+    const sql = "SELECT * FROM user";
     dbcon.query(sql, (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Server error');
         }
-        res.status(200).json({ 
+        res.status(200).json({
             car: results,
-            currentUser: req.session.user 
+            currentUser: req.session.user
         });
-        
-        
+
+
     });
 });
 router.get("/register", ifLoggedin, (req, res) => {
-    
+
 });
 
 router.get("/search", (req, res) => {
@@ -173,7 +190,7 @@ router.get("/search", (req, res) => {
         }
         res.status(200).json({
             car: results,
-            currentUser: req.session.user 
+            currentUser: req.session.user
         });
     });
 });
@@ -186,7 +203,7 @@ router.get('/detail/:id', isAuthencicated, (req, res) => {
             console.error(err);
             return res.status(500).send('Server error');
         }
-        
+
         res.json({ car: result[0] });
     });
 });
@@ -227,7 +244,7 @@ router.get("/UserManagementAdduser", isAuthencicated, (req, res) => {
     res.send('UserManagementAdduser');
 });
 
-router.get("/UserManagementOverview", authPage(["admin"]), (req, res) => {
+router.get("/UserManagementOverview", (req, res) => {
     const sql = "SELECT * FROM User";
     dbcon.query(sql, (err, results) => {
         if (err) {
@@ -248,7 +265,7 @@ router.get("/UserManagementOverview", authPage(["admin"]), (req, res) => {
 //         return res.redirect('/search')
 //     }
 //     console.log(`Finding car with model: ${model}`);
-    
+
 //     const sql = `SELECT * FROM Car WHERE model = ?`;
 //     dbcon.query(sql, [model], (error, results) => {
 //         if (error) {
@@ -272,11 +289,11 @@ router.get("/UserManagementOverview", authPage(["admin"]), (req, res) => {
 
 router.get("/form-search", (req, res) => {
     console.log("Query params:", req.query);
-    const model = req.query.search;  
+    const model = req.query.search;
     if (!model) {
         return res.redirect('/search');
     }
-    
+
     const sql = `SELECT * FROM Car WHERE model = ?`;
     dbcon.query(sql, [model], (err, results) => {
         if (err) {
@@ -293,7 +310,7 @@ router.get("/form-search", (req, res) => {
 
 
 //POST Routes
-router.post('/form-register', (req, res) => {
+router.post('/register',  (req, res) => {
     const { fname, lname, email, username, password } = req.body;
 
     const checkEmailQuery = `SELECT * FROM User WHERE Email=?`;
@@ -304,7 +321,7 @@ router.post('/form-register', (req, res) => {
         }
 
         if (results.length > 0) {
-            return res.send( { error_msg: "Email already registered. Please use a different Email" });
+            return res.send({ error_msg: "Email already registered. Please use a different Email" });
         }
 
         const hashedPassword = bcrypt.hashSync(password, 10);
@@ -314,13 +331,12 @@ router.post('/form-register', (req, res) => {
                 console.error(err);
                 return res.status(500).send('Server error');
             }
-            res.send({ success_msg: "Registration successful" });
+            res.send({ success_msg: "Registration successful" , redirect: '/' });
         });
     });
 });
 
-
-router.post('/form-login', (req, res) => { 
+router.post('/login', (req, res) => {
     const { username, password } = req.body;
     const sql = 'SELECT * FROM User WHERE username = ?';
     dbcon.query(sql, [username], (err, result) => {
@@ -330,19 +346,21 @@ router.post('/form-login', (req, res) => {
         }
         if (result.length > 0) {
             const user = result[0];
-            if (bcrypt.compareSync(password, user.password)|| password ==user.password) {
+            if (bcrypt.compareSync(password, user.password) || password == user.password) {
                 req.session.user = user;
-                return res.redirect('/search');
+                return res.redirect('/')
             } else {
-                res.send( { msg: 'Incorrect Password' });
+                res.send({ msg: 'Incorrect Password' });
             }
-        } else {    
-            res.send( { msg: 'User not found' });
+        } else {
+            res.send({ msg: 'User not found' });
         }
+
     });
 });
 
-router.get('/logout',(req,res)=>{
+router.get('/logout', (req, res) => {
+
     req.session.destroy();
     res.redirect('/')
 })
@@ -428,9 +446,10 @@ router.delete('/delete/:id', (req, res) => {
     });
 });
 
+
 //Create server
-app.listen(process.env.PORT,function() {
-    console.log("Server listening at Port"+process.env.PORT)
+app.listen(process.env.PORT, function () {
+    console.log("Server listening at Port" + process.env.PORT)
 })
 
 // module.exports =router
