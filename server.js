@@ -13,7 +13,7 @@ const cors = require('cors')
 //middleware
 const app = express();
 app.use(cors({//อยู่ก่อนrouter
-    origin: "http://localhost:5173,localhost:5173",
+    origin: "http://localhost:5173",
     credentials: true,
 }))
 app.use(express.json());
@@ -104,7 +104,7 @@ var dbcon = mysql.createConnection({
     host: process.env.DB_host,
     user: process.env.DB_user,
     password: process.env.DB_pass,
-    database: process.env.DB_name
+    database: process.env.DB_name   
 })
 
 //Connect Databases
@@ -125,7 +125,7 @@ router.get("/", (req, res) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Server error');
-        }
+        }x
         res.send({
             users: results,
             currentUser: req.session.user
