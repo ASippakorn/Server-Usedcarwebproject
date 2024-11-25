@@ -53,7 +53,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 // Session configuration
 router.use(session({
     secret: process.env.SESSION_SECRET || 'nodesecret',
-    resave: false,
+    resave: false, //Prevent saving session every req
     saveUninitialized: true,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
@@ -70,6 +70,11 @@ app.use((err, req, res, next) => {
         error: process.env.NODE_ENV === 'production' ? {} : err
     });
 });
+
+app.use((req, res, next) => {
+    console.log('Session:', req.session);
+    next();
+  })
 
 //Middleware to check if the user is login
 function isAuthencicated(req, res, next) {
@@ -120,7 +125,7 @@ dbcon.connect(err => {
 
 router.get("/", (req, res) => {
     const sql = "SELECT * FROM User";
-    console.log(req.session.user);
+    console.log(req.sessionID);
     dbcon.query(sql, (err, results) => {
         if (err) {
             console.error(err);
@@ -133,16 +138,26 @@ router.get("/", (req, res) => {
     });
 });
 
+const authToken = (req, res, next) => {
+    try {
+      if (!req.session.userId) {
+        return res.sendStatus(401);
+      }
+      req.user = req.session.user;
+      next();
+    } catch (error) {
+      return res.sendStatus(403);
+    }
+  };
+  
 router.get('/auth', (req, res) => {
     if (req.session.user) {
-      res.status(200).send({ isAuth: true, user: req.session.user });
+        console.log(req.session)
+        res.json({ isAuth: true });
     } else {
-      res.send({ isAuth: false });
-     
+        res.json({ isAuth: false });
     }
-    console.log(req.session.user)
-  });
-  
+});
   
 router.get("/team", (req, res) => {
 
@@ -172,6 +187,7 @@ router.get("/login", ifLoggedin, (req, res) => {
         res.status(200).json({
             car: results,
             currentUser: req.session.user
+            
         });
 
 
@@ -196,7 +212,7 @@ router.get("/search", (req, res) => {
 });
 
 
-router.get('/detail/:id', isAuthencicated, (req, res) => {
+router.get('/detail/:id',  (req, res) => {
     const sql = "SELECT * FROM Car WHERE carid = ?";
     dbcon.query(sql, [req.params.id], (err, result) => {
         if (err) {
@@ -347,24 +363,39 @@ router.post('/login', (req, res) => {
         if (result.length > 0) {
             const user = result[0];
             if (bcrypt.compareSync(password, user.password) || password == user.password) {
+               
                 req.session.user = user;
-                return res.redirect('/')
+                
+                return res.status(200).send({ message: 'Login successful', isAuth: true ,currentUser:req.session.user});
             } else {
                 res.send({ msg: 'Incorrect Password' });
             }
         } else {
             res.send({ msg: 'User not found' });
         }
-
     });
 });
+
+
+
+
 
 router.get('/logout', (req, res) => {
 
     req.session.destroy();
     res.redirect('/')
 })
-
+app.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).send({ message: 'Logout failed' });
+      }
+      res.clearCookie('connect.sid'); // Clear the session cookie
+      return res.status(200).send({ message: 'Logout successful' });
+    });
+  });
+  
 router.post('/create', upload.single('image'), (req, res) => {
     const { cartype, brand, model, mileage, year, description, carcondition, fuel, insurance, price } = req.body;
     const image = req.file ? req.file.filename : null;
