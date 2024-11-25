@@ -13,7 +13,7 @@ const cors = require('cors')
 //middleware
 const app = express();
 app.use(cors({//อยู่ก่อนrouter
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173","localhost:5173"],
     credentials: true,
 }))
 app.use(express.json());
