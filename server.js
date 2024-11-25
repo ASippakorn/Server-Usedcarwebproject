@@ -125,7 +125,7 @@ router.get("/", (req, res) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Server error');
-        }x
+        }
         res.send({
             users: results,
             currentUser: req.session.user
@@ -204,7 +204,7 @@ router.get('/detail/:id', isAuthencicated, (req, res) => {
             return res.status(500).send('Server error');
         }
 
-        res.json({ car: result[0] });
+        res.send({ car: result[0] });
     });
 });
 
