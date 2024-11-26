@@ -57,8 +57,10 @@ router.use(session({
     saveUninitialized: true,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',// Required for cross-origin cookies
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+    },
+    
 }));
 
 
@@ -150,12 +152,14 @@ const authToken = (req, res, next) => {
     }
   };
   
-router.get('/auth', (req, res) => {
+router.post('/auth', (req, res) => {
+    console.log(req.sessionID)
+    console.log(req.session)
     if (req.session.user) {
         console.log(req.session)
-        res.json({ isAuth: true });
+        res.send({ isAuth: true, currentUser: req.session.user});
     } else {
-        res.json({ isAuth: false });
+        res.send({ isAuth: false ,currentUser: null});
     }
 });
   
