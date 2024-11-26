@@ -228,7 +228,7 @@ router.get('/detail/:id',  (req, res) => {
     });
 });
 
-router.get("/productManagement", isAuthencicated, (req, res) => {
+router.get("/productManagement", (req, res) => {
     const sql = "SELECT * FROM Car";
     dbcon.query(sql, (err, results) => {
         if (err) {
@@ -414,7 +414,7 @@ router.post('/create', upload.single('image'), (req, res) => {
     });
 });
 
-router.get('/edit/:id', (req, res) => {
+router.get('/edit/car/:id', (req, res) => {
     const sql = "SELECT * FROM Car WHERE carid = ?";
     dbcon.query(sql, [req.params.id], (err, result) => {
         if (err) {
@@ -425,7 +425,7 @@ router.get('/edit/:id', (req, res) => {
     });
 });
 
-router.post('/edit/:id', upload.single('image'), (req, res) => {//For webserver
+router.put('/edit/car/:id', upload.single('image'), (req, res) => {//checked
     const { cartype, brand, model, mileage, year, description, fuel, insurance, price } = req.body;
     const image = req.file ? req.file.filename : req.body.oldImage;
 
@@ -435,7 +435,7 @@ router.post('/edit/:id', upload.single('image'), (req, res) => {//For webserver
             console.error(err);
             return res.status(500).send('Server error');
         }
-        res.redirect('/search');
+        res.send({ message: "Record edited successfully" });
     });
 });
 
@@ -480,6 +480,22 @@ router.delete('/delete/:id', (req, res) => {
         res.send({ message: "Record deleted successfully" });
     });
 });
+
+router.delete('/delete/user/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = `DELETE FROM user WHERE userid = ?`;
+    dbcon.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Server error');
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).send({ error: "Record not found" });
+        }
+        res.send({ message: "Record deleted successfully" });
+    });
+});
+
 
 
 //Create server
