@@ -83,7 +83,7 @@ function isAuthencicated(req, res, next) {
     if (req.session.user) {
         return next();
     } else {
-        res.redirect('/login')
+        res.status(401).send("Unauthorized");
     }
 }
 
@@ -228,7 +228,7 @@ router.get('/detail/:id',  (req, res) => {
     });
 });
 
-router.get("/productManagement", (req, res) => {
+router.get("/productManagement", isAuthencicated,(req, res) => {
     const sql = "SELECT * FROM Car";
     dbcon.query(sql, (err, results) => {
         if (err) {
@@ -242,7 +242,7 @@ router.get("/productManagement", (req, res) => {
 });
 //Admin user only
 
-router.get("/productManagementHistory", (req, res) => {
+router.get("/productManagementHistory",isAuthencicated, (req, res) => {
     const sql = "SELECT * FROM Car";
     dbcon.query(sql, (err, results) => {
         if (err) {
@@ -387,7 +387,7 @@ router.post('/login', (req, res) => {
 router.get('/logout', (req, res) => {
 
     req.session.destroy();
-    res.redirect('/')
+    
 })
 app.post('/logout', (req, res) => {
     req.session.destroy((err) => {
@@ -466,7 +466,7 @@ router.get('/delete/:id', (req, res) => {
     });
 });
 
-router.delete('/delete/:id', (req, res) => {
+router.delete('/delete/car/:id', (req, res) => {
     const { id } = req.params;
     const sql = `DELETE FROM Car WHERE carid = ?`;
     dbcon.query(sql, [id], (err, results) => {
