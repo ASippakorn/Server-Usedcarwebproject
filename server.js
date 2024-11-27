@@ -216,6 +216,55 @@ router.get("/search", (req, res) => {
 });
 
 
+
+
+router.post("/advancedsearch", (req, res) => {
+    const { brand, cartype, year, price, insurance, carcondition, carcertified } = req.body;
+
+    let sql = "SELECT * FROM Car WHERE 1=1";
+    const params = [];
+
+    if (brand) {
+        sql += " AND brand = ?";
+        params.push(brand);
+    }
+    if (cartype) {
+        sql += " AND cartype = ?";
+        params.push(cartype);
+    }
+    if (year) {
+        sql += " AND year < ?";
+        params.push(year);
+    }
+    if (price) {
+        sql += " AND price < ?";
+        params.push(price);
+    }
+    if (insurance) {
+        sql += " AND insurance = ?";
+        params.push(insurance);
+    }
+    if (carcondition) {
+        sql += " AND carcondition = ?";
+        params.push(carcondition);
+    }
+    if (carcertified) {
+        sql += " AND carcertified = ?";
+        params.push(carcertified);
+    }
+
+    dbcon.query(sql, params, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Server error");
+        }
+        if (results.length === 0) {
+            return res.status(404).send("No cars found matching the criteria");
+        }
+        res.send(results);
+    });
+});
+
 router.get('/detail/:id',  (req, res) => {
     const sql = "SELECT * FROM Car WHERE carid = ?";
     dbcon.query(sql, [req.params.id], (err, result) => {
@@ -278,35 +327,6 @@ router.get("/UserManagementOverview", (req, res) => {
 });
 
 
-// router.get("/form-search", (req, res) => { 
-//     console.log("Query params:", req.query);
-//     const model = req.query.search;  
-//     if (!model) {
-//         return res.redirect('/search')
-//     }
-//     console.log(`Finding car with model: ${model}`);
-
-//     const sql = `SELECT * FROM Car WHERE model = ?`;
-//     dbcon.query(sql, [model], (error, results) => {
-//         if (error) {
-//             console.error("Database error:", error);
-//             return res.status(500).send("Error querying the database");
-//         }
-
-//         console.log(`${results.length} row(s) returned`);
-
-//         if (results.length === 0) {
-//             console.log("Car not found");
-//             return res.status(404).send("Car not found");
-//         } else {
-//             console.log(`Found car: ${results[0].Model}`);  
-//         }
-//         res.render('search',{
-//             car: results
-//         })
-//     });
-// });
-
 router.get("/form-search", (req, res) => {
     console.log("Query params:", req.query);
     const model = req.query.search;
@@ -355,6 +375,33 @@ router.post('/register',  (req, res) => {
         });
     });
 });
+
+router.post('/adduser'),(req,res)=>{
+    const { fname, lname, email, username, password,phonenum,role } = req.body;
+
+    const checkEmailQuery = `SELECT * FROM User WHERE Email=?`;
+    dbcon.query(checkEmailQuery, [email], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Server error');
+        }
+
+        if (results.length > 0) {
+            return res.send({ error_msg: "Email already registered. Please use a different Email" });
+        }
+
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const insertUserQuery = 'INSERT INTO User (fname,lname,email,username,password,phonenum,role) VALUES(?,?,?,?,?,?,?)';
+        dbcon.query(insertUserQuery, [fname, lname, email, username, hashedPassword,phonenum,role], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Server error');
+            }
+            res.send({ success_msg: "Admin add user successful" , redirect: '/' });
+        });
+    });
+};
+
 
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -439,21 +486,33 @@ router.put('/edit/car/:id', upload.single('image'), (req, res) => {//checked
     });
 });
 
-// router.put('/edit/:id',(req, res) => { // Postman delete img param
-//     const { cartype, brand, model, mileage, year, description, fuel, insurance, price } = req.body;
 
-//     const sql = "UPDATE Car SET cartype=?, brand=?, model=?, mileage=?, year=?, description=?, fuel=?, insurance=?, price=? WHERE carid=?";
-//     dbcon.query(sql, [cartype, brand, model, mileage, year, description, fuel, insurance, price, req.params.id], (err, result) => {
-//         if (err) {
-//             console.error(err);
-//             return res.status(500).send('Server error');
-//         }
-//         if (result.affectedRows === 0) {
-//             return res.status(404).send({ error: "Record not found" });
-//         }
-//         res.send({ message: "Record edited successfully" });
-//     });
-// });
+
+router.get('/edit/user/:id', (req, res) => {
+    const sql = "SELECT * FROM User WHERE userid = ?";
+    dbcon.query(sql, [req.params.id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Server error');
+        }
+        res.send({ user: result[0] });
+    });
+});
+
+router.put('/edit/user/:id', (req, res) => {
+    const { fname,lname,email,username,password,phonenum,role} = req.body;
+    
+    const sql = "UPDATE user SET fname=?, lname=?, email=?, username=?,password=?,phonenum=?,role=? WHERE userid=?";
+    dbcon.query(sql, [fname,lname,email,username,password, phonenum,role, req.params.id], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Server error');
+        }
+        res.send({ message: "Record edited successfully" });
+    });
+});
+
+
 
 router.get('/delete/:id', (req, res) => {
     const sql = "DELETE FROM Car WHERE carid = ?";
@@ -503,4 +562,3 @@ app.listen(process.env.PORT, function () {
     console.log("Server listening at Port" + process.env.PORT)
 })
 
-// module.exports =router

@@ -8,22 +8,13 @@ CREATE TABLE User (
   userID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   username varchar(50) NOT NULL UNIQUE,
   password varchar(500) NOT NULL ,
-  fName VARCHAR(50) ,
-  lName VARCHAR(50) ,
+  fname VARCHAR(50) ,
+  lname VARCHAR(50) ,
   email VARCHAR(100) NOT NULL,
   phonenum VARCHAR(20) DEFAULT "-",
   registerationDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   role VARCHAR(50) DEFAULT "Customer"
 );
-
--- Creating the Review table
-CREATE TABLE Review (
-  reviewID INT NOT NULL PRIMARY KEY AUTO_INCREMENT ,
-  rating INT ,
-  reviewText TEXT,
-  reviewDate DATE NOT NULL,
-  userID INT NOT NULL
-)AUTO_INCREMENT = 20000;
 
 
 -- Creating the Car table (must be created before the Insurance table)
@@ -45,25 +36,6 @@ CREATE TABLE Car (
 );
 
 
-CREATE TABLE CertifiedUsedCar (
-  certID INT NOT NULL PRIMARY KEY AUTO_INCREMENT ,
-  numberofCars INT NOT NULL,
-  verified enum('Yes','No') default 'No' ,
-  carid INT NOT NULL
-);
-
--- Creating the Insurance table
-CREATE TABLE Insurance (
-  policyNumber INT NOT NULL PRIMARY KEY AUTO_INCREMENT ,
-  providerName VARCHAR(50) NOT NULL,
-  expdate DATE NOT NULL,
-  coverageDetail VARCHAR(300),
-  userID INT NOT NULL,
-  carid INT NOT NULL
-)AUTO_INCREMENT = 410000;
-
-
-
 -- Creating the Seller table
 CREATE TABLE Seller (
   sellerID INT NOT NULL PRIMARY KEY AUTO_INCREMENT ,
@@ -79,48 +51,6 @@ CREATE TABLE Seller (
   carid INT
 )AUTO_INCREMENT = 60000;
 
--- Creating the Dealership table
-CREATE TABLE Dealership (
-  dealershipID INT NOT NULL PRIMARY KEY AUTO_INCREMENT ,
-  dealerName VARCHAR(50) NOT NULL,
-  numCar INT NOT NULL,
-  sellerID INT NOT NULL
-
-)AUTO_INCREMENT = 710000;
-
--- Creating the Advertisement table
-CREATE TABLE Advertisement (
-  adID INT NOT NULL PRIMARY KEY AUTO_INCREMENT ,
-  title VARCHAR(100) NOT NULL,
-  cost INT NOT NULL,
-  expdate DATE NOT NULL,
-  adDescription TEXT,
-  carID int NOT NULL
-
-)AUTO_INCREMENT = 810000;
--- order foreignkey
-
--- ALTER TABLE Review
--- ADD FOREIGN KEY (UserID) REFERENCES User(UserID);
-
--- ALTER TABLE Dealership
--- ADD FOREIGN KEY (SellerID) REFERENCES Seller(SellerID);
-
--- ALTER TABLE Insurance
--- ADD FOREIGN KEY (UserID) REFERENCES User(UserID),
--- ADD FOREIGN KEY (CarID) REFERENCES Car(CarID);
-
--- ALTER TABLE Dealership
--- ADD FOREIGN KEY (SellerID) REFERENCES Seller(SellerID);
-
--- ALTER TABLE CertifiedUsedCar
--- ADD FOREIGN KEY (CarID) REFERENCES Car(CarID);
-
--- ALTER TABLE Advertisement
--- ADD FOREIGN KEY (carid) REFERENCES car(carid);
-
--- ALTER TABLE Seller
--- ADD FOREIGN KEY (CARID) REFERENCES Car(CarID);
 
 
 
@@ -142,14 +72,14 @@ VALUES
 -- Sample data for Car table
 INSERT INTO Car (cartype, carcertified, brand, model, mileage, year, description, carcondition, fuel, insurance, price, image)
 VALUES 
-('Sport', 'Yes', 'BMW', 'M3', 15000, 2022, 'A high-performance sports car', 'Excellent', 'Petrol', 3, 70000, 'bmw_m3.jpg'),
-('SUV', 'No', 'Mercedes-Benz', 'GLS', 20000, 2021, 'Luxury SUV with spacious interior', 'Good', 'Diesel', 2, 85000, 'mercedes_gls.jpg'),
-('Sport', 'Yes', 'Bugatti', 'Chiron', 5000, 2023, 'Ultimate luxury hypercar', 'Excellent', 'Petrol', 5, 3000000, 'bugatti_chiron.jpg'),
-('Sport', 'No', 'Porsche', '911 Carrera', 12000, 2022, 'Iconic sports car', 'Excellent', 'Petrol', 1, 120000, 'porsche_911.jpg'),
-('Luxury', 'Yes', 'Bentley', 'Continental GT', 8000, 2023, 'Luxury grand tourer', 'Excellent', 'Petrol', 4, 250000, 'bentley_continental.jpg'),
-('Sport', 'No', 'Ferrari', '488 GTB', 10000, 2021, 'Italian masterpiece', 'Good', 'Petrol', 2, 280000, 'ferrari_488.jpg'),
-('Sport', 'Yes', 'McLaren', '720S', 7000, 2023, 'Track-focused supercar', 'Excellent', 'Petrol', 3, 300000, 'mclaren_720s.jpg'),
-('Luxury', 'No', 'Rolls-Royce', 'Phantom', 3000, 2023, 'Ultimate luxury saloon', 'Excellent', 'Petrol', 5, 500000, 'rolls_royce_phantom.jpg');
+('Sport', 'Yes', 'BMW', 'M3', 15000, 2022, 'A high-performance sports car', 'Excellent', 'Petrol', 3, 70000, 'https://www.bmw.co.th/content/dam/bmw/common/all-models/m-series/m3-sedan/2023/highlights/bmw-3-series-cs-m-automobiles-ms-bmw-financial-services.jpg'),
+('SUV', 'No', 'Mercedes-Benz', 'GLS', 20000, 2021, 'Luxury SUV with spacious interior', 'Good', 'Diesel', 2, 85000, 'https://www.mercedes-benz.co.th/content/dam/hq/passengercars/cars/gls/gls-suv-x167-fl-pi/modeloverview/03-2023/images/mercedes-benz-gls-suv-x167-modeloverview-696x392-03-2023.png'),
+('Sport', 'Yes', 'Bugatti', 'Chiron', 5000, 2023, 'Ultimate luxury hypercar', 'Excellent', 'Petrol', 5, 3000000, 'https://d2ox13tjqpxop5.cloudfront.net/BUGATTI-2023/Bugatti-Models/Sport/Gallery/CS_1.jpg'),
+('Sport', 'No', 'Porsche', '911 Carrera', 12000, 2022, 'Iconic sports car', 'Excellent', 'Petrol', 1, 120000, 'https://images-porsche.imgix.net/-/media/E969499404154DB79BAD58EF5CC8CFAB_82BBE0A2462E47C4B1DB34EA0B23B853_CZ25W12IX0010-911-carrera-gts-side?w=2560&h=697&q=45&crop=faces%2Centropy%2Cedges&auto=format'),
+('Luxury', 'Yes', 'Bentley', 'Continental GT', 8000, 2023, 'Luxury grand tourer', 'Excellent', 'Petrol', 4, 250000, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrXOoPx0Q_posz7DNl5wRIsTYhi5TAY3yDMQ&s'),
+('Sport', 'No', 'Ferrari', '488 GTB', 10000, 2021, 'Italian masterpiece', 'Good', 'Petrol', 2, 280000, 'https://cdn.ferrari.com/cms/network/media/img/resize/5ea6cdda5d40a35d05a53137-12_ferrari-250_gt_pinin_farina_coup%C3%A3%C2%A9_488_gtb_esterni?width=750&height=550'),
+('Sport', 'Yes', 'McLaren', '720S', 7000, 2023, 'Track-focused supercar', 'Excellent', 'Petrol', 3, 300000, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRWQeJvO4NblJZFF5l4CfTbmROBXSqJ9cvXw&s'),
+('Luxury', 'No', 'Rolls-Royce', 'Phantom', 3000, 2023, 'Ultimate luxury saloon', 'Excellent', 'Petrol', 5, 500000, 'https://www.rolls-roycemotorcars.com/content/dam/rrmc/marketUK/rollsroycemotorcars_com/phantom-ii-commission/page-properties/Phantom-II-Commission-Single-Card.jpg/jcr:content/renditions/cq5dam.web.1920.webp');
 
 
 -- Sample data insertion for Insurance table (ensure correct UserID and CarID)
@@ -157,10 +87,6 @@ INSERT INTO Insurance ( ProviderName, Expdate, CoverageDetail, UserID, CarID) VA
 ( 'Allstate', '2025-05-20', 'Full coverage', 1, '1'),  -- UserID 1 corresponds to John Doe
 ( 'Geico', '2025-07-15', 'Basic coverage', 2, '2');  -- UserID 2 corresponds to Jane Smith
 
--- Sample data for CertifiedUsedCar table
-INSERT INTO CertifiedUsedCar (NumberofCars, Verified, CarID) VALUES
-( 5, 'Yes', '1'),
-( 3, 'Yes', '2');
 
 -- Sample data for Seller table
 INSERT INTO Seller ( NumberofCars, Verified, Rating, City, Province, Zipcode, Contactinfo,CarID) VALUES
